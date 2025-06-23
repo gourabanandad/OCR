@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 echo "Installing Tesseract OCR..."
-sudo apt-get install tesseract-ocr -y
+apt-get update && apt-get install -y tesseract-ocr
