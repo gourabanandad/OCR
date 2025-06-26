@@ -1,6 +1,9 @@
-flask
-flask-cors
-pytesseract
-opencv-python-headless
-pillow
-gunicorn
+Flask==3.1.1
+flask_cors==5.0.1
+numpy==2.3.1
+opencv_contrib_python==4.10.0.84
+opencv_python==4.11.0.86
+opencv_python_headless==4.11.0.86
+Pillow==11.2.1
+pytesseract==0.3.13
+Werkzeug==3.1.3
