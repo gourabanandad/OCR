@@ -40,7 +40,7 @@ def smart_preprocess(img_path):
 
     # Auto Resize based on image width
     height, width = img.shape
-    zoom_factor = 2 if width > 1200 else 1.6
+    zoom_factor = 1.2 if width > 1200 else 1.6
     img = cv2.resize(img, None, fx=zoom_factor, fy=zoom_factor, interpolation=cv2.INTER_LINEAR)
 
     # Binary Thresholding
@@ -60,7 +60,7 @@ def extract_table_text(img):
     custom_config = r'--oem 3 --psm 6'
     return pytesseract.image_to_string(img, config=custom_config)
 
-def parse_ocr_marks(ocr_text):
+def parse_pca_marks(ocr_text):
     ocr_text = ocr_text.replace('{', '(').replace('}', ')').replace('[', '(').replace(']', ')').replace(',', '.')
     cleaned_text = re.sub(r'Page\sCount:\d{,3}', ' ', ocr_text, flags=re.IGNORECASE)
     lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
@@ -80,33 +80,22 @@ def parse_ocr_marks(ocr_text):
             code = paper_code_match.group(0)
             remaining = line[paper_code_match.end():].strip()
 
-            marks_match = re.search(r'(.+?)\s+([A\d.]+)?\s+([A\d.]+)?\s+([A\d.]+)?(?:\s+([A\d.]+))?\s+([A-Z][A-Za-z .]+)$', remaining)
+            marks_match = re.search(r'(.+?)\s+(\d{1,2})\s+(\d{1,2})\s+([A-Z][A-Za-z .]+)$', remaining)
             if marks_match:
                 subject = marks_match.group(1).strip().rstrip('.')
-                raw_ca1 = marks_match.group(2)
-                raw_ca2 = marks_match.group(3)
-                third_value = marks_match.group(4)
-                fourth_value = marks_match.group(5)
-                teacher_start = marks_match.group(6).strip()
+                raw_pca1 = marks_match.group(2)
+                raw_pca2 = marks_match.group(3)
 
-                ca1 = safe_mark(raw_ca1)
-                ca2 = safe_mark(raw_ca2)
+                pca1 = safe_mark(raw_pca1)
+                pca2 = safe_mark(raw_pca2)
 
-                if third_value and '.' in third_value:
-                    ca3 = safe_mark(third_value)
-                    ca4 = safe_mark(fourth_value)
-                else:
-                    ca3 = None
-                    ca4 = safe_mark(third_value)
-                teacher_start = marks_match.group(6).strip()
+                teacher_start = marks_match.group(4).strip()
 
                 current_record = {
                     "paper_code": code,
                     "subject": subject,
-                    "CA1": ca1,
-                    "CA2": ca2,
-                    "CA3": ca3,
-                    "CA4": ca4
+                    "PCA1": pca1,
+                    "PCA2": pca2,
                 }
                 teacher_parts = [teacher_start]
         elif current_record:
@@ -140,7 +129,7 @@ def process_marks():
             # Process the image
             img = smart_preprocess(filepath)
             raw_text = extract_table_text(img)
-            parsed_data = parse_ocr_marks(raw_text)
+            parsed_data = parse_pca_marks(raw_text)
             
             # Clean up - remove the uploaded file after processing
             os.remove(filepath)
@@ -155,7 +144,7 @@ def process_marks():
             return jsonify({
                 "status": "error",
                 "message": str(e)
-            }), 00
+            }), 500
     
     return jsonify({"error": "File type not allowed"}), 400
 

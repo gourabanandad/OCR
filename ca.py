@@ -155,7 +155,7 @@ def process_marks():
             return jsonify({
                 "status": "error",
                 "message": str(e)
-            }), 00
+            }), 500
     
     return jsonify({"error": "File type not allowed"}), 400
 
